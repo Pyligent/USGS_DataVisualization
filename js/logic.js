@@ -1,25 +1,29 @@
-// Store our API endpoint inside queryUrl
+
 var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+var TectonicPlatesGeoJSON = "GeoJSON/PB2002_boundaries.json";
+
 
 // Perform a GET request to the query URL
-d3.json(queryUrl, function(data) {
+d3.json(queryUrl, function(earthquake_data) {
   // Once we get a response, send the data.features object to the createFeatures function
-  createFeatures(data.features);
+  d3.json(TectonicPlatesGeoJSON,function(tectonicplates_data){
+    createFeatures(earthquake_data.features,tectonicplates_data.features);
+  });
+  
 });
 
-function createFeatures(earthquakeData) {
+function createFeatures(earthquakeData,tectonicplatesData) {
 
   // Define a function we want to run once for each feature in the features array
   // Give each feature a popup describing the place and time of the earthquake
   function onEachFeature(feature, layer) {
     layer.bindPopup("<h2>" + feature.properties.title +
-      "</h2><hr><h3>Time:" + new Date(feature.properties.time) + `${feature.properties.url}`+"</a></h3><h3>"+`Mag: ${feature.properties.mag}`+"</h3><h3>"+`Type: ${feature.properties.type}`+"</h3><h4>"+`Rms: ${feature.properties.rms}`+"</h4>");
+      "</h2><hr><h3>Time:" + new Date(feature.properties.time) +"</a></h3><h3>"+`Mag: ${feature.properties.mag}`+"</h3><h3>"+`Type: ${feature.properties.type}`+"</h3><h4>"+`Rms: ${feature.properties.rms}`+"</h4>");
       
      }
     
    
-  // Create a GeoJSON layer containing the features array on the earthquakeData object
-  // Run the onEachFeature function once for each piece of data in the array
+  // Create Earthquakes and TetonicPlates GeoJSON layers containing the features 
   var earthquakes = L.geoJSON(earthquakeData, {
     onEachFeature: onEachFeature,
     
@@ -27,18 +31,24 @@ function createFeatures(earthquakeData) {
       return L.circle(latlng, {
       stroke: false,
       fillOpacity: 0.75,
-      color: "red",
+      color: "black",
       fillColor: getColor(feature.properties.mag),
       radius: feature.properties.mag*15000
       });
     }
   })
+  
+  var tectonicplates = L.geoJSON(tectonicplatesData, {
+      pointToLayer: function (feature, latlng) {
+			return L.marker(latlng);
+    }
+  });
 
-
-  // Sending our earthquakes layer to the createMap function
-  createMap(earthquakes);
+ // Sending our earthquakes layer to the createMap function
+  createMap(earthquakes,tectonicplates);
 }
 
+// Legend Color
 function getColor(d){
     return d > 5 ? '#333300' :
            d > 4  ? '#866600' :
@@ -50,7 +60,7 @@ function getColor(d){
 
 }
 
-function createMap(earthquakes) {
+function createMap(earthquakes,tectonicplates) {
 
   // Define streetmap and darkmap layers
   var streetmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
@@ -67,24 +77,34 @@ function createMap(earthquakes) {
     accessToken: API_KEY
   });
 
+  var outdoormap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+    attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+    maxZoom: 18,
+    id: "mapbox.outdoor",
+    accessToken: API_KEY
+  });
+
+
   // Define a baseMaps object to hold our base layers
   var baseMaps = {
     "Street Map": streetmap,
-    "Satellite Map": satellitemap
+    "Satellite Map": satellitemap,
+    "Outdoor":outdoormap
   };
 
   // Create overlay object to hold our overlay layer
   var overlayMaps = {
-    Earthquakes: earthquakes
+    Earthquakes: earthquakes,
+    TectonicPlates: tectonicplates
   };
 
   // Create our map, giving it the streetmap and earthquakes layers to display on load
   var myMap = L.map("map", {
     center: [
-      37.09, -122.42
+      42.1888, -120.3458
     ],
     zoom: 4,
-    layers: [streetmap, earthquakes]
+    layers: [satellitemap, earthquakes,tectonicplates]
   });
 
   // Create a layer control
@@ -118,3 +138,4 @@ var legend = L.control({position: 'bottomright'});
 
   legend.addTo(map);
 }
+
