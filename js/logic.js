@@ -44,7 +44,7 @@ function createFeatures(earthquakeData,tectonicplatesData) {
     }
   });
 
- // Sending our earthquakes layer to the createMap function
+ // Create Map
   createMap(earthquakes,tectonicplates);
 }
 
@@ -98,7 +98,7 @@ function createMap(earthquakes,tectonicplates) {
     TectonicPlates: tectonicplates
   };
 
-  // Create our map, giving it the streetmap and earthquakes layers to display on load
+  
   var myMap = L.map("map", {
     center: [
       42.1888, -120.3458
