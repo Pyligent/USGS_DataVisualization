@@ -1,3 +1,7 @@
+---
+permalink: /index.html
+---
+
 # United States Geological Survey Data Visualization
 
 ## Background
