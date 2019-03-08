@@ -12,25 +12,24 @@ function createFeatures(earthquakeData) {
   // Define a function we want to run once for each feature in the features array
   // Give each feature a popup describing the place and time of the earthquake
   function onEachFeature(feature, layer) {
-    layer.bindPopup("<h3>" + feature.properties.place +
-      "</h3><hr><p>" + new Date(feature.properties.time) +"Mag: "+  feature.properties.mag+"</p>");
+    layer.bindPopup("<h2>" + feature.properties.title +
+      "</h2><hr><h3>Time:" + new Date(feature.properties.time) +"</h3><h3><a href="+`${feature.properties.url}`+">"+ `${feature.properties.url}`+"</a></h3><h3>"+`Mag: ${feature.properties.mag}`+"</h3><h3>"+`Type: ${feature.properties.type}`+"</h3><h4>"+`Rms: ${feature.properties.rms}`+"</h4>");
+      
      }
     
-     
-     //.bindPopup("<h5><b>"+`PLACE: ${feature.properties.place}`+"</b></h5><p><a href="+`${feature.properties.url}`+">"+ `${feature.properties.url}`+"</a></p><h6>"+`Mag: ${feature.properties.mag}`+"</h6><h6><b>"+`Time: ${feature.properties.time} ;  Title: ${feature.properties.title}`+"</b></h6><h6>"+`Type: ${feature.properties.type}`+"</h6><h6>"+`Rms: ${feature.properties.rms}`+"</h6>")
-    // .addTo(Location_markers);
-
+   
   // Create a GeoJSON layer containing the features array on the earthquakeData object
   // Run the onEachFeature function once for each piece of data in the array
   var earthquakes = L.geoJSON(earthquakeData, {
     onEachFeature: onEachFeature,
+    
     pointToLayer: function (feature, latlng) {
       return L.circle(latlng, {
       stroke: false,
       fillOpacity: 0.75,
       color: "red",
-      fillColor: "red",
-      radius: feature.properties.mag*10000
+      fillColor: getColor(feature.properties.mag),
+      radius: feature.properties.mag*15000
       });
     }
   })
@@ -38,6 +37,17 @@ function createFeatures(earthquakeData) {
 
   // Sending our earthquakes layer to the createMap function
   createMap(earthquakes);
+}
+
+function getColor(d){
+    return d > 5 ? '#333300' :
+           d > 4  ? '#866600' :
+           d > 3  ? '#999900' :
+           d > 2  ? '#CCCC00' :
+           d > 1   ? '#FFFF00' :
+           d > 0   ? '#FFFF66' :
+                     '#FFFFCC';
+
 }
 
 function createMap(earthquakes) {
@@ -83,4 +93,28 @@ function createMap(earthquakes) {
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
+  addLegend(myMap);
+}
+
+//Add Legend
+
+function addLegend(map){
+
+
+var legend = L.control({position: 'bottomright'});
+
+    legend.onAdd = function () {
+
+    var div = L.DomUtil.create('div', 'info legend');
+    var level = [0, 1, 2, 3, 4, 5];
+    var divItem =[];
+    
+    for (var i = 0; i < level.length; i++) {
+      divItem.push("<i style=background:"+getColor(level[i] + 1)+"></i>" + level[i] + (level[i + 1] ? " - " + level[i + 1]:"+"));
+    }
+    div.innerHTML = divItem.join('<br>');
+    return div;
+  };
+
+  legend.addTo(map);
 }
