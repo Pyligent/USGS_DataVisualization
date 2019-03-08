@@ -14,31 +14,27 @@ function createFeatures(earthquakeData) {
   function onEachFeature(feature, layer) {
     layer.bindPopup("<h3>" + feature.properties.place +
       "</h3><hr><p>" + new Date(feature.properties.time) +"Mag: "+  feature.properties.mag+"</p>");
+     }
     
-      pointToLayer: function Feature_layer(feature, latlng) {
-        return L.circle(latlng, {
-        stroke: false,
-        fillOpacity: 0.75,
-        color: "red",
-        fillColor: "red",
-        radius: feature.properties.mag*10
-     });
-    }
-  }
-
-
-
      
      //.bindPopup("<h5><b>"+`PLACE: ${feature.properties.place}`+"</b></h5><p><a href="+`${feature.properties.url}`+">"+ `${feature.properties.url}`+"</a></p><h6>"+`Mag: ${feature.properties.mag}`+"</h6><h6><b>"+`Time: ${feature.properties.time} ;  Title: ${feature.properties.title}`+"</b></h6><h6>"+`Type: ${feature.properties.type}`+"</h6><h6>"+`Rms: ${feature.properties.rms}`+"</h6>")
     // .addTo(Location_markers);
 
-  
-
   // Create a GeoJSON layer containing the features array on the earthquakeData object
   // Run the onEachFeature function once for each piece of data in the array
   var earthquakes = L.geoJSON(earthquakeData, {
-    onEachFeature: onEachFeature
-  });
+    onEachFeature: onEachFeature,
+    pointToLayer: function (feature, latlng) {
+      return L.circle(latlng, {
+      stroke: false,
+      fillOpacity: 0.75,
+      color: "red",
+      fillColor: "red",
+      radius: feature.properties.mag*10000
+      });
+    }
+  })
+
 
   // Sending our earthquakes layer to the createMap function
   createMap(earthquakes);
@@ -75,9 +71,9 @@ function createMap(earthquakes) {
   // Create our map, giving it the streetmap and earthquakes layers to display on load
   var myMap = L.map("map", {
     center: [
-      37.09, -95.71
+      37.09, -122.42
     ],
-    zoom: 5,
+    zoom: 4,
     layers: [streetmap, earthquakes]
   });
 
